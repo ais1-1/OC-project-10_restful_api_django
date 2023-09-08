@@ -29,7 +29,11 @@ router = routers.SimpleRouter()
 
 router.register("user", authentication.views.UserViewset, basename="user")
 router.register("project", projectmanager.views.ProjectViewset, basename="project")
-router.register("contributor", projectmanager.views.ContributorViewset, basename="contributor")
+router.register(
+    "contributor", projectmanager.views.ContributorViewset, basename="contributor"
+)
+router.register("issue", projectmanager.views.IssueViewset, basename="issue")
+router.register("comment", projectmanager.views.CommentViewset, basename="comment")
 
 urlpatterns = [
     path("admin/", admin.site.urls),
