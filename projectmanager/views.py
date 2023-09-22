@@ -1,4 +1,6 @@
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.permissions import IsAuthenticated
+from django.shortcuts import get_object_or_404
 
 from .models import Project, Contributor, Issue, Comment
 from .serializers import (
@@ -11,55 +13,67 @@ from .serializers import (
     CommentDetailSerializer,
     CommentListSerializer,
 )
+from .permissions import IsAuthorOrReadOnly
 
 
-class ProjectViewset(ModelViewSet):
-    serializer_class = ProjectListSerializer
-    detail_serializer_class = ProjectDetailSerializer
-
-    def get_queryset(self):
-        return Project.objects.all()
+class MultipleSerializerMixin:
+    detail_serializer_class = None
 
     def get_serializer_class(self):
-        if self.action == "retrieve":
+        if self.action == "retrieve" and self.detail_serializer_class is not None:
             return self.detail_serializer_class
         return super().get_serializer_class()
 
 
-class ContributorViewset(ModelViewSet):
+class ProjectViewset(MultipleSerializerMixin, ModelViewSet):
+    serializer_class = ProjectListSerializer
+    detail_serializer_class = ProjectDetailSerializer
+    queryset = Project.objects.all()
+
+    permission_classes = [IsAuthenticated, IsAuthorOrReadOnly]
+
+
+class ContributorViewset(MultipleSerializerMixin, ModelViewSet):
     serializer_class = ContributorListSerializer
     detail_serializer_class = ContributorDetailSerializer
 
+    permission_classes = [IsAuthenticated]
+
     def get_queryset(self):
-        return Contributor.objects.all()
-
-    def get_serializer_class(self):
-        if self.action == "retrieve":
-            return self.detail_serializer_class
-        return super().get_serializer_class()
+        # Show the list of the projects where the contributor is part of
+        queryset = Contributor.objects.filter(user=self.request.user)
+        return queryset
 
 
-class IssueViewset(ModelViewSet):
+class IssueViewset(MultipleSerializerMixin, ModelViewSet):
     serializer_class = IssueListSerializer
     detail_serializer_class = IssueDetailSerializer
 
+    permission_classes = [IsAuthenticated, IsAuthorOrReadOnly]
+
     def get_queryset(self):
-        return Issue.objects.all()
+        # Show the list of the projects where the contributor is part of
+        queryset = Issue.objects.all()
+        # Verify the presence of ‘project_id’ in the url, if yes apply filter
+        project_id = self.request.GET.get("project_id")
+        if project_id is not None:
+            queryset = queryset.filter(
+                project=get_object_or_404(Project, id=project_id)
+            )
+        return queryset
 
-    def get_serializer_class(self):
-        if self.action == "retrieve":
-            return self.detail_serializer_class
-        return super().get_serializer_class()
 
-
-class CommentViewset(ModelViewSet):
+class CommentViewset(MultipleSerializerMixin, ModelViewSet):
     serializer_class = CommentListSerializer
     detail_serializer_class = CommentDetailSerializer
 
-    def get_queryset(self):
-        return Comment.objects.all()
+    permission_classes = [IsAuthenticated, IsAuthorOrReadOnly]
 
-    def get_serializer_class(self):
-        if self.action == "retrieve":
-            return self.detail_serializer_class
-        return super().get_serializer_class()
+    def get_queryset(self):
+        # Show the list of the projects where the contributor is part of
+        queryset = Comment.objects.all()
+        # Verify the presence of 'issue_id' in the url, if yes apply filter
+        issue_id = self.request.GET.get("issue_id")
+        if issue_id is not None:
+            queryset = queryset.filter(issue=get_object_or_404(Issue, id=issue_id))
+        return queryset

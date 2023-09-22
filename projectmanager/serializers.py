@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from .models import Project, Contributor, Issue, Comment
-from authentication.serializers import UserSerializer
+from authentication.serializers import UserListSerializer
 
 
 class ProjectListSerializer(serializers.ModelSerializer):
@@ -14,7 +14,6 @@ class ProjectListSerializer(serializers.ModelSerializer):
 
 
 class ProjectDetailSerializer(serializers.ModelSerializer):
-    author = UserSerializer()
     created_time = serializers.ReadOnlyField()
 
     class Meta(object):
@@ -24,14 +23,14 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
 
 
 class ContributorDetailSerializer(serializers.ModelSerializer):
-    user = UserSerializer()
+    user = UserListSerializer()
     project = ProjectDetailSerializer(many=True)
     created_time = serializers.ReadOnlyField()
 
     class Meta(object):
         model = Contributor
 
-        fields = ("user", "project", "created_time")
+        fields = ("id", "user", "project", "created_time")
 
 
 class ContributorListSerializer(serializers.ModelSerializer):
@@ -41,15 +40,6 @@ class ContributorListSerializer(serializers.ModelSerializer):
         model = Contributor
 
         fields = ("id", "user", "project", "created_time")
-
-
-class ContributorUserDetailSerializer(serializers.ModelSerializer):
-    user = UserSerializer()
-
-    class Meta(object):
-        model = Contributor
-
-        fields = ("user",)
 
 
 class IssueListSerializer(serializers.ModelSerializer):
@@ -71,8 +61,8 @@ class IssueListSerializer(serializers.ModelSerializer):
 
 class IssueDetailSerializer(serializers.ModelSerializer):
     created_time = serializers.ReadOnlyField()
-    author = ContributorUserDetailSerializer()
-    assigned_to = ContributorUserDetailSerializer()
+    author = ContributorDetailSerializer()
+    assigned_to = ContributorDetailSerializer()
     project = ProjectDetailSerializer()
 
     class Meta(object):
@@ -94,7 +84,7 @@ class IssueDetailSerializer(serializers.ModelSerializer):
 
 class CommentDetailSerializer(serializers.ModelSerializer):
     created_time = serializers.ReadOnlyField()
-    author = ContributorUserDetailSerializer()
+    author = ContributorDetailSerializer()
     issue = IssueListSerializer()
 
     class Meta(object):
