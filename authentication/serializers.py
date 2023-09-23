@@ -1,6 +1,39 @@
 from rest_framework import serializers
+from django.contrib.auth import get_user_model
+from rest_framework.validators import UniqueValidator
+from django.contrib.auth.password_validation import validate_password
 
-from .models import User
+
+User = get_user_model()
+
+
+class UserSignupSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(
+        required=True, validators=[UniqueValidator(queryset=User.objects.all())]
+    )
+
+    password = serializers.CharField(
+        write_only=True, required=True, validators=[validate_password]
+    )
+    age = serializers.IntegerField(required=True, min_value=15)
+
+    class Meta:
+        model = User
+        fields = [
+            "username",
+            "first_name",
+            "last_name",
+            "email",
+            "age",
+            "can_be_contacted",
+            "can_data_be_shared",
+            "password",
+        ]
+        extra_kwargs = {"password": {"write_only": True}}
+
+    def create(self, validated_data):
+        user = User.objects.create_user(**validated_data)
+        return user
 
 
 class UserDetailSerializer(serializers.ModelSerializer):
@@ -11,6 +44,7 @@ class UserDetailSerializer(serializers.ModelSerializer):
 
         fields = (
             "id",
+            "username",
             "email",
             "first_name",
             "last_name",
@@ -32,5 +66,6 @@ class UserListSerializer(serializers.ModelSerializer):
 
         fields = (
             "id",
+            "username",
             "created_time",
         )

@@ -40,5 +40,6 @@ urlpatterns = [
     path("api-auth/", include("rest_framework.urls")),
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path('api/signup/', authentication.views.UserSignupView.as_view(), name='signup'),
     path("api/", include(router.urls)),
 ]
