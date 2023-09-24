@@ -20,7 +20,6 @@ class UserViewset(ModelViewSet):
         if self.action == "retrieve":
             queryset = User.objects.filter(can_data_be_shared=True)
         else:
-            print(self.action)
             queryset = User.objects.all()
         return queryset
 
