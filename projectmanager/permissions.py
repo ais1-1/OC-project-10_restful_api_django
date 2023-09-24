@@ -1,20 +1,39 @@
 from rest_framework.permissions import BasePermission, SAFE_METHODS
+from django.shortcuts import get_object_or_404
 
-from .models import Contributor
+from .models import Contributor, Project
 
 
 def is_contributor(user, project):
     for contributor in Contributor.objects.filter(project=project):
-        if user is contributor.user:
+        if user == contributor.user:
             return True
     return False
+
+
+class ContributorPermission(BasePermission):
+    """Only contributors have access to list and detail contributors.
+    Only an author can create, destroy contributors."""
+
+    message = "You don't have permission to do this action."
+
+    def has_permission(self, request, view):
+        if request.method in SAFE_METHODS:
+            return is_contributor(
+                request.user, get_object_or_404(Project, id=request.data["project"])
+            )
+        else:
+            return (
+                get_object_or_404(Project, id=request.data["project"]).author
+                == request.user
+            )
 
 
 class ProjectPermission(BasePermission):
     """Only contributors have access. And only an author can update, partial update, destroy actions.
     Instance must have an attribute named `author`."""
 
-    message = "Only contributors have permission."
+    message = "You don't have permission to do this action."
 
     def has_object_permission(self, request, view, obj):
         if request.method in SAFE_METHODS:
@@ -27,7 +46,7 @@ class IssuePermission(BasePermission):
     """Only contributors have access. And only an author can update, partial update, destroy actions.
     Instance must have an attribute named `author`."""
 
-    message = "Only contributors have permission."
+    message = "You don't have permission to do this action."
 
     def has_object_permission(self, request, view, obj):
         if request.method in SAFE_METHODS:
@@ -40,7 +59,7 @@ class CommentPermission(BasePermission):
     """Only contributors have access. And only an author can update, partial update, destroy actions.
     Instance must have an attribute named `author`."""
 
-    message = "Only contributors have permission."
+    message = "You don't have permission to do this action."
 
     def has_object_permission(self, request, view, obj):
         if request.method in SAFE_METHODS:

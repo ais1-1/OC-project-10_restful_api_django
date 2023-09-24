@@ -1,50 +1,54 @@
 from rest_framework import serializers
+from django.contrib.auth import get_user_model
 
 from .models import Project, Contributor, Issue, Comment
 from authentication.serializers import UserListSerializer
 
+User = get_user_model()
+
 
 class ProjectListSerializer(serializers.ModelSerializer):
-    created_time = serializers.ReadOnlyField()
-
     class Meta(object):
         model = Project
 
-        fields = ("id", "name", "created_time")
+        fields = ("id", "name", "project_type", "author")
 
 
 class ProjectDetailSerializer(serializers.ModelSerializer):
     created_time = serializers.ReadOnlyField()
+    issues = serializers.SerializerMethodField()
 
     class Meta(object):
         model = Project
 
-        fields = ("name", "description", "project_type", "author", "created_time")
+        fields = (
+            "name",
+            "description",
+            "project_type",
+            "author",
+            "created_time",
+            "issues",
+        )
 
-
-class ContributorDetailSerializer(serializers.ModelSerializer):
-    user = UserListSerializer()
-    project = ProjectDetailSerializer(many=True)
-    created_time = serializers.ReadOnlyField()
-
-    class Meta(object):
-        model = Contributor
-
-        fields = ("id", "user", "project", "created_time")
+    def get_issues(self, instance):
+        queryset = Issue.objects.filter(project_id=instance.id)
+        return IssueListSerializer(queryset, many=True).data
 
 
 class ContributorListSerializer(serializers.ModelSerializer):
-    created_time = serializers.ReadOnlyField()
+    user = serializers.SerializerMethodField()
 
     class Meta(object):
         model = Contributor
 
-        fields = ("id", "user", "project", "created_time")
+        fields = ("id", "user", "project")
+
+    def get_user(self, instance):
+        queryset = User.objects.filter(id=instance.user.id)
+        return UserListSerializer(queryset, many=True).data
 
 
 class IssueListSerializer(serializers.ModelSerializer):
-    created_time = serializers.ReadOnlyField()
-
     class Meta(object):
         model = Issue
 
@@ -52,18 +56,16 @@ class IssueListSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "priority",
+            "ticket",
             "assigned_to",
             "status",
             "project",
-            "created_time",
         )
 
 
 class IssueDetailSerializer(serializers.ModelSerializer):
     created_time = serializers.ReadOnlyField()
-    author = ContributorDetailSerializer()
-    assigned_to = ContributorDetailSerializer()
-    project = ProjectDetailSerializer()
+    comments = serializers.SerializerMethodField()
 
     class Meta(object):
         model = Issue
@@ -79,18 +81,12 @@ class IssueDetailSerializer(serializers.ModelSerializer):
             "status",
             "project",
             "created_time",
+            "comments",
         )
 
-
-class CommentDetailSerializer(serializers.ModelSerializer):
-    created_time = serializers.ReadOnlyField()
-    author = ContributorDetailSerializer()
-    issue = IssueListSerializer()
-
-    class Meta(object):
-        model = Comment
-
-        fields = ("id", "description", "author", "issue", "created_time")
+    def get_comments(self, instance):
+        queryset = Comment.objects.filter(issue_id=instance.id)
+        return CommentListSerializer(queryset, many=True).data
 
 
 class CommentListSerializer(serializers.ModelSerializer):
