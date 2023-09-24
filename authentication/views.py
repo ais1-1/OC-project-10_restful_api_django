@@ -20,11 +20,14 @@ class UserViewset(ModelViewSet):
         if self.action == "retrieve":
             queryset = User.objects.filter(can_data_be_shared=True)
         else:
+            print(self.action)
             queryset = User.objects.all()
         return queryset
 
     def get_serializer_class(self):
         if self.action == "retrieve" and self.detail_serializer_class is not None:
+            return self.detail_serializer_class
+        if self.action == "update" and self.detail_serializer_class is not None:
             return self.detail_serializer_class
         return super().get_serializer_class()
 
