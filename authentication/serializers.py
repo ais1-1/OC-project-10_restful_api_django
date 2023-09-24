@@ -59,13 +59,10 @@ class UserDetailSerializer(serializers.ModelSerializer):
 
 
 class UserListSerializer(serializers.ModelSerializer):
-    created_time = serializers.ReadOnlyField()
-
     class Meta(object):
         model = User
 
         fields = (
             "id",
             "username",
-            "created_time",
         )
