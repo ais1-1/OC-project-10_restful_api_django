@@ -127,17 +127,28 @@ class IssueViewset(GetDetailSerializerMixin, ModelViewSet):
     permission_classes = [IsAuthenticated, IssuePermission]
 
     def get_queryset(self):
-        queryset = Issue.objects.all()
+        if self.action == "retrieve" or self.action == "update":
+            return Issue.objects.all()
         """Verify the presence of ‘project_id’ in the url,
         if yes apply filter to show issues of the given project"""
         project_id = self.request.GET.get("project_id")
         if project_id is not None:
-            queryset = queryset.filter(
+            queryset = Issue.objects.filter(
                 project=get_object_or_404(Project, id=project_id)
             )
             return queryset
         else:
             raise ValidationError(detail="apply a filter with project id.")
+
+    @transaction.atomic
+    def perform_create(self, serializer):
+        serializer.save(
+            author=get_object_or_404(
+                Contributor,
+                user=self.request.user,
+                project=self.request.data["project"],
+            )
+        )
 
 
 class CommentViewset(GetDetailSerializerMixin, ModelViewSet):
@@ -147,12 +158,25 @@ class CommentViewset(GetDetailSerializerMixin, ModelViewSet):
     permission_classes = [IsAuthenticated, CommentPermission]
 
     def get_queryset(self):
-        queryset = Comment.objects.all()
+        if self.action == "retrieve" or self.action == "update":
+            return Comment.objects.all()
         """Verify the presence of 'issue_id' in the url,
         if yes apply filter to show the comments of the given issue"""
         issue_id = self.request.GET.get("issue_id")
         if issue_id is not None:
-            queryset = queryset.filter(issue=get_object_or_404(Issue, id=issue_id))
+            queryset = Comment.objects.filter(
+                issue=get_object_or_404(Issue, id=issue_id)
+            )
             return queryset
         else:
             raise ValidationError(detail="apply a filter with issue id.")
+
+    @transaction.atomic
+    def perform_create(self, serializer):
+        serializer.save(
+            author=get_object_or_404(
+                Contributor,
+                user=self.request.user,
+                project=self.request.data["issue"].project,
+            )
+        )

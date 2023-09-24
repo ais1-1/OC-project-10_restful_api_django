@@ -66,6 +66,7 @@ class IssueListSerializer(serializers.ModelSerializer):
 class IssueDetailSerializer(serializers.ModelSerializer):
     created_time = serializers.ReadOnlyField()
     comments = serializers.SerializerMethodField()
+    author = serializers.SerializerMethodField()
 
     class Meta(object):
         model = Issue
@@ -84,6 +85,10 @@ class IssueDetailSerializer(serializers.ModelSerializer):
             "comments",
         )
 
+    def get_author(self, instance):
+        queryset = User.objects.filter(id=instance.author.user.id)
+        return UserListSerializer(queryset, many=True).data
+
     def get_comments(self, instance):
         queryset = Comment.objects.filter(issue_id=instance.id)
         return CommentListSerializer(queryset, many=True).data
@@ -91,8 +96,13 @@ class IssueDetailSerializer(serializers.ModelSerializer):
 
 class CommentListSerializer(serializers.ModelSerializer):
     created_time = serializers.ReadOnlyField()
+    author = serializers.SerializerMethodField()
 
     class Meta(object):
         model = Comment
 
         fields = ("id", "description", "author", "issue", "created_time")
+
+    def get_author(self, instance):
+        queryset = User.objects.filter(id=instance.author.user.id)
+        return UserListSerializer(queryset, many=True).data

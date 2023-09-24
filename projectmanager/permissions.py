@@ -1,7 +1,6 @@
 from rest_framework.permissions import BasePermission, SAFE_METHODS
-from django.shortcuts import get_object_or_404
 
-from .models import Contributor, Project
+from .models import Contributor
 
 
 def is_contributor(user, project):
@@ -17,16 +16,11 @@ class ContributorPermission(BasePermission):
 
     message = "You don't have permission to do this action."
 
-    def has_permission(self, request, view):
+    def has_object_permission(self, request, view, obj):
         if request.method in SAFE_METHODS:
-            return is_contributor(
-                request.user, get_object_or_404(Project, id=request.data["project"])
-            )
+            return is_contributor(request.user, obj.project)
         else:
-            return (
-                get_object_or_404(Project, id=request.data["project"]).author
-                == request.user
-            )
+            return obj.project.author == request.user
 
 
 class ProjectPermission(BasePermission):
