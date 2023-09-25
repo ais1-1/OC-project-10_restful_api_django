@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from rest_framework.validators import UniqueValidator
+from django.contrib.auth.hashers import make_password
+
 from django.contrib.auth.password_validation import validate_password
 
 
@@ -20,6 +22,7 @@ class UserSignupSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
+            "id",
             "username",
             "first_name",
             "last_name",
@@ -31,9 +34,10 @@ class UserSignupSerializer(serializers.ModelSerializer):
         ]
         extra_kwargs = {"password": {"write_only": True}}
 
-    def create(self, validated_data):
-        user = User.objects.create_user(**validated_data)
-        return user
+    def validate_password(self, value: str) -> str:
+        if value is not None:
+            return make_password(value)
+        raise serializers.ValidationError("Password is empty")
 
 
 class UserDetailSerializer(serializers.ModelSerializer):

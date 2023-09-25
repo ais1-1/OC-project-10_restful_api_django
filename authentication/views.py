@@ -1,8 +1,6 @@
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.generics import CreateAPIView
-from rest_framework.response import Response
-from rest_framework import status
 
 from .models import User
 from .serializers import UserListSerializer, UserDetailSerializer, UserSignupSerializer
@@ -37,21 +35,3 @@ class UserSignupView(CreateAPIView):
         AllowAny,
     ]
     serializer_class = UserSignupSerializer
-
-    def post(self, request):
-        # if email and username are already in use
-        if User.objects.filter(email=request.data["email"]).exists():
-            return Response(
-                {"error": "Email already registered"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        elif User.objects.filter(username=request.data["username"]).exists():
-            return Response(
-                {"error": "Username already registered"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        else:
-            serializer = UserSignupSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
