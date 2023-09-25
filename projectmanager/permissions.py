@@ -46,7 +46,7 @@ class IssuePermission(BasePermission):
         if request.method in SAFE_METHODS:
             return is_contributor(request.user, obj.project)
         else:
-            return obj.author == request.user
+            return obj.author.user == request.user
 
 
 class CommentPermission(BasePermission):
@@ -59,4 +59,4 @@ class CommentPermission(BasePermission):
         if request.method in SAFE_METHODS:
             return is_contributor(request.user, obj.issue.project)
         else:
-            return obj.author == request.user
+            return obj.author.user == request.user

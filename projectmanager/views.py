@@ -57,6 +57,12 @@ class ProjectViewset(GetDetailSerializerMixin, ModelViewSet):
 
 
 class ContributorViewset(ModelViewSet):
+    """
+    Contributor views endpoints.
+    Create/ update /delete: Author of a project
+    Get list / details: Contributor
+    """
+
     serializer_class = ContributorListSerializer
 
     permission_classes = [IsAuthenticated, ContributorPermission]
