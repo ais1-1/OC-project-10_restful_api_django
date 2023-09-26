@@ -203,6 +203,6 @@ class CommentViewset(GetDetailSerializerMixin, ModelViewSet):
             author=get_object_or_404(
                 Contributor,
                 user=self.request.user,
-                project=self.request.data["issue"].project,
+                project=get_object_or_404(Issue, id=self.request.data["issue"]).project,
             )
         )
