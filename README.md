@@ -51,13 +51,13 @@ Here are the connection details for an existing user :
 - Project endpoints:
     - To see the list of projects [GET] or to create a new one [POST]: http://127.0.0.1:8000/api/project/
     - To see the detailed view of a project [GET] or to update the project info that you have authored [PUT] or to delete your project [DELETE]: http://127.0.0.1:8000/api/project/{project_id}/
--Issue endpoints:
+- Issue endpoints:
     - To see the list of issues of a project that you are contributing to [GET]: http://127.0.0.1:8000/api/issue/?project_id={project_id}
     - To see the detailed view [GET] or to update an issue you have authored [PUT] or delete it [DELETE]: http://127.0.0.1:8000/api/issue/{issue_id} 
     - To create an issue [POST]: http://127.0.0.1:8000/api/issue/
--Comment endpoints:
+- Comment endpoints:
     - It follows the same pattern as for issues, one can just replace the word issue with comment, and issue_id instead of project_id, and comment_id instead of issue_id
--Contributor endpoints:
+- Contributor endpoints:
     - To see the contributors of a project [GET]: http://127.0.0.1:8000/api/contributor/?project_id={project_id}
     - Only an author of a project can add a new contributor [POST]: http://127.0.0.1:8000/api/contributor/
     - Similarly an author can delete a contributor [DELETE]: http://127.0.0.1:8000/api/contributor/{contributor_id}/
